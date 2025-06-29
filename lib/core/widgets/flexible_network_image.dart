@@ -54,7 +54,7 @@ class _FlexibleNetworkImageState extends State<FlexibleNetworkImage> {
           onTap: () => Navigator.pop(context),
           child: InteractiveViewer(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(Sizes.radiusSm),
               child: Image.network(
                 _imageUrl!,
                 fit: BoxFit.contain,
@@ -154,26 +154,58 @@ class ViewOnlyNetworkImage extends StatelessWidget {
   final String? imageUrl;
   final String fallbackAsset;
   final BoxFit fit;
+  final bool enableViewImageFull;
 
   const ViewOnlyNetworkImage({
     Key? key,
     required this.imageUrl,
     this.fallbackAsset = ImageStrings.appLogoFill,
     this.fit = BoxFit.cover,
+    this.enableViewImageFull = false,
   }) : super(key: key);
+
+  void _viewFullImage(BuildContext context) {
+    if (imageUrl == null || imageUrl!.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: InteractiveViewer(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(Sizes.radiusSm),
+              child: Image.network(
+                imageUrl!,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Image.asset(fallbackAsset, fit: BoxFit.contain);
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (imageUrl == null || imageUrl!.isEmpty) {
-      return Image.asset(fallbackAsset, fit: fit);
-    }
+    final Widget image = imageUrl == null || imageUrl!.isEmpty
+        ? Image.asset(fallbackAsset, fit: fit)
+        : Image.network(
+            imageUrl!,
+            fit: fit,
+            errorBuilder: (context, error, stackTrace) {
+              return Image.asset(fallbackAsset, fit: fit);
+            },
+          );
 
-    return Image.network(
-      imageUrl!,
-      fit: fit,
-      errorBuilder: (context, error, stackTrace) {
-        return Image.asset(fallbackAsset, fit: fit);
-      },
+    return GestureDetector(
+      onTap: enableViewImageFull ? () => _viewFullImage(context) : null,
+      child: image,
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:bogoballers/core/models/league_model.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/widgets/app_button.dart';
 import 'package:bogoballers/core/widgets/flexible_network_image.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 class JoinLeagueScreen extends StatefulWidget {
@@ -30,6 +31,7 @@ class _JoinLeagueScreenState extends State<JoinLeagueScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: appColors.gray200,
+        flexibleSpace: Container(color: appColors.gray200),
         iconTheme: IconThemeData(color: appColors.gray1100),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -37,22 +39,64 @@ class _JoinLeagueScreenState extends State<JoinLeagueScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(Sizes.spaceMd),
+        padding: const EdgeInsets.only(
+          top: 0,
+          right: Sizes.spaceMd,
+          left: Sizes.spaceMd,
+          bottom: Sizes.spaceMd,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            IntrinsicHeight(
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(100),
+                      child: ViewOnlyNetworkImage(
+                        imageUrl:
+                            league.league_administrator.organization_logo_url,
+                        fit: BoxFit.cover,
+                        enableViewImageFull: true,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: Sizes.spaceSm),
+                  Text(
+                    league.league_administrator.organization_name,
+                    style: TextStyle(
+                      fontSize: Sizes.fontSizeSm,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.fade,
+                  ),
+                ],
+              ),
+            ),
+            Divider(thickness: 0.5, color: appColors.gray600),
+            const SizedBox(height: Sizes.spaceMd),
             AspectRatio(
               aspectRatio: 16 / 9,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(Sizes.radiusMd),
-                child: ViewOnlyNetworkImage(imageUrl: league.banner_url),
+                child: ViewOnlyNetworkImage(
+                  imageUrl: league.banner_url,
+                  fit: BoxFit.cover,
+                  enableViewImageFull: true,
+                ),
               ),
             ),
             const SizedBox(height: Sizes.spaceMd),
-
             Text(
               league.league_title,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: Sizes.fontSizeLg,
+                fontWeight: FontWeight.bold,
+              ),
               maxLines: 5,
               overflow: TextOverflow.fade,
             ),
@@ -72,22 +116,98 @@ class _JoinLeagueScreenState extends State<JoinLeagueScreen> {
               textAlign: TextAlign.justify,
               overflow: TextOverflow.fade,
             ),
-
+            const SizedBox(height: Sizes.spaceSm),
+            const Text(
+              "Rules",
+              style: TextStyle(
+                fontSize: Sizes.fontSizeMd,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              league.league_rules.orNoData(),
+              style: const TextStyle(fontSize: Sizes.fontSizeSm),
+              maxLines: 10,
+              textAlign: TextAlign.justify,
+              overflow: TextOverflow.fade,
+            ),
             const SizedBox(height: Sizes.spaceLg),
-
-            Divider(thickness: 0.5, color: appColors.gray600),
             const Text(
               "Categories",
               style: TextStyle(
-                fontSize: Sizes.fontSizeLg,
+                fontSize: Sizes.fontSizeMd,
                 fontWeight: FontWeight.w600,
               ),
             ),
             ...league.categories.map((category) {
               return _buildCategoriesCard(category);
             }).toList(),
+            const SizedBox(height: Sizes.spaceSm),
+            const Text(
+              "Championship Trophies",
+              style: TextStyle(
+                fontSize: Sizes.fontSizeMd,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: Sizes.spaceSm),
+            _buildTropyCarouselSlider(),
+            const SizedBox(height: Sizes.spaceSm),
+            const Text(
+              "Sponsors",
+              style: TextStyle(
+                fontSize: Sizes.fontSizeMd,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              league.sponsors.orNoData(),
+              style: const TextStyle(fontSize: Sizes.fontSizeSm),
+              maxLines: 10,
+              overflow: TextOverflow.fade,
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTropyCarouselSlider() {
+    final appColors = context.appColors;
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: Sizes.spaceMd),
+      decoration: BoxDecoration(
+        color: appColors.gray100,
+        borderRadius: BorderRadius.circular(Sizes.radiusMd),
+        border: BoxBorder.all(
+          width: Sizes.borderWidthSm,
+          color: appColors.gray600,
+        ),
+      ),
+      child: CarouselSlider.builder(
+        itemCount: league.championship_trophies.length,
+        options: CarouselOptions(
+          height: 150,
+          autoPlay: true,
+          enlargeCenterPage: true,
+          viewportFraction: 0.5,
+          padEnds: true,
+          enlargeStrategy: CenterPageEnlargeStrategy.height,
+        ),
+        itemBuilder: (context, index, realIndex) {
+          final trophy = league.championship_trophies[index];
+          return AspectRatio(
+            aspectRatio: 1,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(Sizes.radiusMd),
+              child: ViewOnlyNetworkImage(
+                imageUrl: trophy.image_url,
+                fit: BoxFit.cover,
+                enableViewImageFull: true,
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -159,11 +279,12 @@ class _JoinLeagueScreenState extends State<JoinLeagueScreen> {
                       color: Colors.green,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
+                    child: Text(
                       "FREE",
                       style: TextStyle(
-                        color: Colors.white,
+                        color: appColors.gray100,
                         fontWeight: FontWeight.bold,
+                        fontSize: Sizes.fontSizeSm,
                       ),
                     ),
                   )

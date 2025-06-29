@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 
+import 'package:bogoballers/core/models/images_url_model.dart';
 import 'package:bogoballers/core/models/league_administrator.dart';
 import 'package:dio/dio.dart';
 
@@ -23,6 +24,7 @@ class LeagueModel {
   late LeagueAdministratorModel league_administrator;
   late List<LeagueTeamModel> league_teams;
   late List<LeagueCategoryModel> categories;
+  late List<ImageModel> championship_trophies;
 
   MultipartFile? banner_image;
 
@@ -44,6 +46,7 @@ class LeagueModel {
     required this.league_administrator,
     required this.league_teams,
     required this.categories,
+    this.championship_trophies = const [],
     this.banner_url,
     this.sponsors,
     this.created_at,
@@ -110,6 +113,11 @@ class LeagueModel {
       league_administrator: LeagueAdministratorModel.fromJson(
         json['league_administrator'],
       ),
+      championship_trophies:
+          (json['championship_trophies'] as List?)
+              ?.map((e) => ImageModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       league_teams:
           (json['league_teams'] as List?)
               ?.map((e) => LeagueTeamModel.fromJson(e as Map<String, dynamic>))
