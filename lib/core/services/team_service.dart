@@ -84,4 +84,17 @@ class TeamService {
 
     return apiResponse;
   }
+
+  Future<ApiResponse> updateTeam({
+    required String team_id,
+    required Map<String, dynamic> data,
+  }) async {
+    final api = DioClient().client;
+
+    final response = await api.put("/team/update/${team_id}", data: data);
+
+    final apiResponse = ApiResponse.fromJsonNoPayload(response.data);
+
+    return apiResponse;
+  }
 }

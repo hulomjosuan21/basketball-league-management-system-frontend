@@ -1,16 +1,22 @@
+import 'dart:async';
+
 import 'package:bogoballers/client/screens/team_creator_player_screen.dart';
 import 'package:bogoballers/core/constants/custom_icons.dart';
 import 'package:bogoballers/core/constants/sizes.dart';
 import 'package:bogoballers/core/extensions/extensions.dart';
+import 'package:bogoballers/core/helpers/helpers.dart';
 import 'package:bogoballers/core/models/team_model.dart';
 import 'package:bogoballers/core/service_locator.dart';
+import 'package:bogoballers/core/services/team_service.dart';
 import 'package:bogoballers/core/state/team_provider.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
+import 'package:bogoballers/core/utils/error_handling.dart';
 import 'package:bogoballers/core/widgets/app_button.dart';
 import 'package:bogoballers/core/widgets/flexible_network_image.dart';
 import 'package:bogoballers/core/widgets/setting_menu_list.dart';
+import 'package:bogoballers/core/widgets/snackbars.dart';
 import 'package:flutter/material.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:shimmer/shimmer.dart';
 
 class TeamCreatorTeamScreen extends StatefulWidget {
   const TeamCreatorTeamScreen({super.key, required this.team});
@@ -26,7 +32,11 @@ class _TeamCreatorTeamScreenState extends State<TeamCreatorTeamScreen> {
   late final TextEditingController _teamNameController;
   late final TextEditingController _teamMotoController;
 
+  late Future<void> lateHandleSettingNetworkData;
+  final List<String> categories = [];
+
   bool _hasChanges = false;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -37,6 +47,17 @@ class _TeamCreatorTeamScreenState extends State<TeamCreatorTeamScreen> {
 
     _teamNameController.addListener(_checkForChanges);
     _teamMotoController.addListener(_checkForChanges);
+
+    lateHandleSettingNetworkData = handleSettingNetworkData();
+  }
+
+  Future<void> handleSettingNetworkData() async {
+    final service = await leagueCategories();
+    if (mounted && categories.isEmpty) {
+      setState(() {
+        categories.addAll(service);
+      });
+    }
   }
 
   void _checkForChanges() {
@@ -157,31 +178,100 @@ class _TeamCreatorTeamScreenState extends State<TeamCreatorTeamScreen> {
     );
   }
 
+  Widget _buildShimmerLoadingSection({int shimmer = 1}) {
+    final appColors = context.appColors;
+    return Shimmer.fromColors(
+      baseColor: appColors.gray300,
+      highlightColor: appColors.gray100,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: List.generate(shimmer, (index) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: Sizes.spaceMd),
+            child: Container(
+              width: double.infinity,
+              height: 24.0,
+              color: Colors.white,
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
   Widget _buildTeamSettingSection() {
     final appColors = context.appColors;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Recruit Players',
-              style: TextStyle(
-                fontSize: Sizes.fontSizeMd,
-                fontWeight: FontWeight.w600,
-                color: appColors.gray1100,
+
+    return isLoading || categories.isEmpty
+        ? _buildShimmerLoadingSection(shimmer: 2)
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DropdownMenu<String>(
+                label: Text("Team Category"),
+                onSelected: _onSelectCategory,
+                dropdownMenuEntries: categories
+                    .map((o) => DropdownMenuEntry(value: o, label: o))
+                    .toList(),
               ),
-            ),
-            Switch(
-              value: team.is_recruiting,
-              onChanged: (value) => _handleEditRecruit(value),
-              activeColor: appColors.accent900,
-            ),
-          ],
-        ),
-      ],
-    );
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Recruit Players',
+                    style: TextStyle(
+                      fontSize: Sizes.fontSizeMd,
+                      fontWeight: FontWeight.w600,
+                      color: appColors.gray1100,
+                    ),
+                  ),
+                  Switch(
+                    value: team.is_recruiting,
+                    onChanged: (value) => _handleEditRecruit(value),
+                    activeColor: appColors.accent900,
+                  ),
+                ],
+              ),
+            ],
+          );
+  }
+
+  Future<void> _onSelectCategory(String? value) async {
+    setState(() => isLoading = true);
+    try {
+      final originalTeam = team;
+      final service = TeamService();
+      team = team.copyWith(team_category: value);
+      final updateJson = team.toJsonForUpdate(originalTeam);
+      final response = await service.updateTeam(
+        team_id: team.team_id,
+        data: updateJson,
+      );
+
+      if (mounted) {
+        showAppSnackbar(
+          context,
+          message: response.message,
+          title: "Success",
+          variant: SnackbarVariant.success,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        handleErrorCallBack(e, (message) {
+          showAppSnackbar(
+            context,
+            message: message,
+            title: "Error",
+            variant: SnackbarVariant.error,
+          );
+        });
+      }
+    } finally {
+      if (context.mounted) {
+        scheduleMicrotask(() => setState(() => isLoading = false));
+      }
+    }
   }
 
   void _handleGotoPlayers() {

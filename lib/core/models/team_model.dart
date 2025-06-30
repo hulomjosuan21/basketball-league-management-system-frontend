@@ -130,6 +130,8 @@ class TeamModel {
   late DateTime created_at;
   late DateTime updated_at;
 
+  String? team_category;
+
   factory TeamModel.fromJson(Map<String, dynamic> json) {
     return TeamModel(
       team_id: json['team_id'],
@@ -146,33 +148,13 @@ class TeamModel {
       total_wins: json['total_wins'],
       total_losses: json['total_losses'] ?? 0,
       is_recruiting: json['is_recruiting'] ?? 0,
+      team_category: json['team_category'] ?? 'No selected',
       created_at: DateTime.parse(json['created_at']),
       updated_at: DateTime.parse(json['updated_at']),
       players: (json['players'] as List)
           .map((player) => PlayerTeamModel.fromJson(player))
           .toList(),
     );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'team_id': team_id,
-      'user_id': user_id,
-      'active_league': active_league.toString(),
-      'team_name': team_name,
-      'team_address': team_address,
-      'contact_number': contact_number,
-      'team_motto': team_motto,
-      'team_logo_url': team_logo_url,
-      'championships_won': championships_won,
-      'coach_name': coach_name,
-      'assistant_coach_name': assistant_coach_name,
-      'players': players.toList(),
-      'total_wins': total_wins,
-      'is_recruiting': is_recruiting,
-      'created_at': created_at,
-      'updated_at': updated_at,
-    };
   }
 
   TeamModel({
@@ -194,50 +176,86 @@ class TeamModel {
     this.players = const [],
     required this.total_wins,
     required this.total_losses,
+    required this.team_category,
   });
 
   TeamModel copyWith({
-    String? team_id,
-    String? user_id,
     String? team_name,
     String? team_address,
     String? contact_number,
     String? team_motto,
-    String? team_logo_url,
-    int? championships_won,
+    String? team_category,
     String? coach_name,
     String? assistant_coach_name,
-    int? total_wins,
-    int? total_losses,
     bool? is_recruiting,
     String? team_captain_id,
-    PlayerTeamModel? team_captain,
-    LeagueModel? active_league,
-    List<PlayerTeamModel>? players,
-    MultipartFile? team_logo_image,
-    DateTime? created_at,
-    DateTime? updated_at,
   }) {
     return TeamModel(
-      team_id: team_id ?? this.team_id,
-      user_id: user_id ?? this.user_id,
+      team_id: team_id,
+      user_id: user_id,
       team_name: team_name ?? this.team_name,
       team_address: team_address ?? this.team_address,
       contact_number: contact_number ?? this.contact_number,
       team_motto: team_motto ?? this.team_motto,
-      team_logo_url: team_logo_url ?? this.team_logo_url,
-      championships_won: championships_won ?? this.championships_won,
+      team_logo_url: team_logo_url,
+      championships_won: championships_won,
       coach_name: coach_name ?? this.coach_name,
       assistant_coach_name: assistant_coach_name ?? this.assistant_coach_name,
-      total_wins: total_wins ?? this.total_wins,
-      total_losses: total_losses ?? this.total_losses,
+      total_wins: total_wins,
+      total_losses: total_losses,
       is_recruiting: is_recruiting ?? this.is_recruiting,
       team_captain_id: team_captain_id ?? this.team_captain_id,
       active_league: active_league ?? this.active_league,
-      players: players ?? this.players,
-      created_at: created_at ?? this.created_at,
-      updated_at: updated_at ?? this.updated_at,
+      team_category: team_category ?? this.team_category,
+      created_at: created_at,
+      updated_at: updated_at,
     );
+  }
+
+  Map<String, dynamic> toJsonForUpdate(TeamModel original) {
+    final Map<String, dynamic> updatedFields = {};
+
+    if (team_name != original.team_name) updatedFields['team_name'] = team_name;
+    if (team_address != original.team_address)
+      updatedFields['team_address'] = team_address;
+    if (contact_number != original.contact_number)
+      updatedFields['contact_number'] = contact_number;
+    if (team_motto != original.team_motto)
+      updatedFields['team_motto'] = team_motto;
+    if (coach_name != original.coach_name)
+      updatedFields['coach_name'] = coach_name;
+    if (assistant_coach_name != original.assistant_coach_name)
+      updatedFields['assistant_coach_name'] = assistant_coach_name;
+    if (is_recruiting != original.is_recruiting)
+      updatedFields['is_recruiting'] = is_recruiting;
+    if (team_captain_id != original.team_captain_id)
+      updatedFields['team_captain_id'] = team_captain_id;
+    if (team_category != original.team_category)
+      updatedFields['team_category'] = team_category;
+
+    return updatedFields;
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'team_id': team_id,
+      'user_id': user_id,
+      'active_league': active_league.toString(),
+      'team_name': team_name,
+      'team_address': team_address,
+      'contact_number': contact_number,
+      'team_motto': team_motto,
+      'team_logo_url': team_logo_url,
+      'championships_won': championships_won,
+      'coach_name': coach_name,
+      'assistant_coach_name': assistant_coach_name,
+      'players': players.toList(),
+      'total_wins': total_wins,
+      'is_recruiting': is_recruiting,
+      'created_at': created_at,
+      'updated_at': updated_at,
+      'team_category': team_category,
+    };
   }
 
   Map<String, dynamic> toChangedJson(TeamModel other) {

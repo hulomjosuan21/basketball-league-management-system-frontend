@@ -63,7 +63,7 @@ class LeagueServices {
         body['organization_type'] = org_type;
 
       final response = await api.get(
-        '/league/fetch', // ✅ POST instead of GET
+        '/league/fetch',
         data: body,
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
@@ -80,5 +80,9 @@ class LeagueServices {
       print("League fetch error: $e");
       return [];
     }
+  }
+
+  Future<void> joinTeam() async {
+    final api = DioClient().client;
   }
 }
