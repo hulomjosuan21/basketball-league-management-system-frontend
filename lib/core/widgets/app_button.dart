@@ -94,7 +94,7 @@ class AppButton extends MaterialButton {
       style: TextStyle(
         fontSize: fontSize,
         fontWeight: FontWeight.w500,
-        color: isDisabled ? colors.gray500 : textColor,
+        color: isDisabled ? colors.gray1100 : textColor,
       ),
     );
 

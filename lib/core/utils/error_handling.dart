@@ -11,7 +11,7 @@ class EntityNotFound implements Exception {
   EntityNotFound(AccountTypeEnum accountType)
     : message = _resolveMessage(accountType);
 
-  static String _resolveMessage(AccountTypeEnum accountType) {
+  static String _resolveMessage(AccountTypeEnum? accountType) {
     switch (accountType) {
       case AccountTypeEnum.LOCAL_ADMINISTRATOR:
       case AccountTypeEnum.LGU_ADMINISTRATOR:
@@ -20,7 +20,7 @@ class EntityNotFound implements Exception {
       case AccountTypeEnum.TEAM_CREATOR:
         return 'User not found.';
       default:
-        return 'Entity not found.';
+        return 'User not found.';
     }
   }
 

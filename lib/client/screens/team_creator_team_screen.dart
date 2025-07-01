@@ -18,6 +18,8 @@ import 'package:bogoballers/core/widgets/snackbars.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
+enum Loading { settings, none }
+
 class TeamCreatorTeamScreen extends StatefulWidget {
   const TeamCreatorTeamScreen({super.key, required this.team});
 
@@ -36,7 +38,7 @@ class _TeamCreatorTeamScreenState extends State<TeamCreatorTeamScreen> {
   final List<String> categories = [];
 
   bool _hasChanges = false;
-  bool isLoading = false;
+  Loading loading = Loading.none;
 
   @override
   void initState() {
@@ -202,7 +204,7 @@ class _TeamCreatorTeamScreenState extends State<TeamCreatorTeamScreen> {
   Widget _buildTeamSettingSection() {
     final appColors = context.appColors;
 
-    return isLoading || categories.isEmpty
+    return (loading == Loading.settings) || categories.isEmpty
         ? _buildShimmerLoadingSection(shimmer: 2)
         : Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,7 +239,7 @@ class _TeamCreatorTeamScreenState extends State<TeamCreatorTeamScreen> {
   }
 
   Future<void> _onSelectCategory(String? value) async {
-    setState(() => isLoading = true);
+    setState(() => loading = Loading.settings);
     try {
       final originalTeam = team;
       final service = TeamService();
@@ -269,7 +271,7 @@ class _TeamCreatorTeamScreenState extends State<TeamCreatorTeamScreen> {
       }
     } finally {
       if (context.mounted) {
-        scheduleMicrotask(() => setState(() => isLoading = false));
+        setState(() => loading = Loading.none);
       }
     }
   }

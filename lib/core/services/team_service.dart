@@ -97,4 +97,20 @@ class TeamService {
 
     return apiResponse;
   }
+
+  static Future<List<Map<String, dynamic>>> fetchTeamForLeagueToJoin({
+    required String league_id,
+    required String user_id,
+  }) async {
+    final api = DioClient().client;
+
+    final response = await api.get("/team/for-league/$league_id/$user_id");
+
+    final apiResponse = ApiResponse<List<Map<String, dynamic>>>.fromJson(
+      response.data,
+      (json) => List<Map<String, dynamic>>.from(json as List),
+    );
+
+    return apiResponse.payload ?? [];
+  }
 }

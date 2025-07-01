@@ -82,7 +82,23 @@ class LeagueServices {
     }
   }
 
-  Future<void> joinTeam() async {
+  Future<ApiResponse> joinTeam({
+    required String league_id,
+    required String team_id,
+    required String category_id,
+  }) async {
     final api = DioClient().client;
+
+    final data = {
+      'league_id': league_id,
+      'team_id': team_id,
+      'category_id': category_id,
+    };
+
+    final response = await api.patch('league/accept-team', data: data);
+
+    final apiResponse = ApiResponse.fromJsonNoPayload(response.data);
+
+    return apiResponse;
   }
 }

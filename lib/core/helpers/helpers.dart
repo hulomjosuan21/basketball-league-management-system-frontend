@@ -5,6 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:image_picker/image_picker.dart';
+import 'package:multi_image_picker_view/multi_image_picker_view.dart';
 
 String formatJerseyNumber(double? input) {
   if (input == null) return "No data";
@@ -93,4 +95,24 @@ Future<String> termsAndConditionsContent({required String key}) async {
     debugPrint("Error loading terms and conditions: $e\n$stack");
     return 'Failed to load content.';
   }
+}
+
+Future<List<ImageFile>> pickImagesUsingImagePicker(int maxCount) async {
+  final picker = ImagePicker();
+  final picked = await picker.pickMultiImage();
+  final limited = picked.take(maxCount).toList();
+
+  return Future.wait(
+    limited.map((file) async {
+      final bytes = await file.readAsBytes();
+
+      return ImageFile(
+        UniqueKey().toString(),
+        name: file.name,
+        extension: file.name.split('.').last,
+        bytes: bytes,
+        path: file.path,
+      );
+    }),
+  );
 }

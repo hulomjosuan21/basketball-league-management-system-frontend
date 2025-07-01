@@ -1,3 +1,4 @@
+import 'package:bogoballers/client/screens/player_document_screen.dart';
 import 'package:bogoballers/core/constants/sizes.dart';
 import 'package:bogoballers/core/extensions/extensions.dart';
 import 'package:bogoballers/core/helpers/logout.dart';
@@ -31,6 +32,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
       appBar: AppBar(backgroundColor: appColors.gray200),
       body: RefreshIndicator(
         onRefresh: _refresh,
+        color: appColors.accent900,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
@@ -92,6 +94,18 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                       icon: Icons.notifications,
                       label: 'Notifications',
                       content: const Text('Manage your notifications here.'),
+                    ),
+                    SettingsMenuItem(
+                      icon: Icons.file_upload_sharp,
+                      label: 'Documents',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PlayerDocumentScreen(
+                            player_id: player!.player_id,
+                          ),
+                        ),
+                      ),
                     ),
                     SettingsMenuItem(
                       icon: Icons.settings,

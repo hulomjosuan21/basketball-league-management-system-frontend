@@ -1,5 +1,6 @@
 // ignore_for_file: non_constant_identifier_names
 
+import 'package:bogoballers/core/models/images_url_model.dart';
 import 'package:bogoballers/core/models/user.dart';
 import 'package:dio/dio.dart';
 
@@ -21,8 +22,7 @@ class PlayerModel {
   late int rebounds;
 
   late String profile_image_url;
-  String? document_url_1;
-  String? document_url_2;
+  late List<ImageModel> document_photos;
 
   UserModel user;
 
@@ -49,9 +49,8 @@ class PlayerModel {
     required this.profile_image_url,
     required this.created_at,
     required this.updated_at,
-    required this.document_url_1,
-    required this.document_url_2,
     required this.user,
+    this.document_photos = const [],
   });
 
   PlayerModel.create({
@@ -91,8 +90,6 @@ class PlayerModel {
       assists: json['assists'],
       birth_date: DateTime.parse(json['birth_date']),
       created_at: DateTime.parse(json['created_at']),
-      document_url_1: json['document_url_1'],
-      document_url_2: json['document_url_2'],
       full_name: json['full_name'],
       games_played: json['games_played'],
       gender: json['gender'],
@@ -109,6 +106,9 @@ class PlayerModel {
       user: UserModel.fromJson(json['user']),
       user_id: json['user_id'],
       weight_kg: json['weight_kg'],
+      document_photos: (json['document_photos'] as List)
+          .map((e) => ImageModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 

@@ -34,28 +34,21 @@ class AppHeader extends StatelessWidget {
             color: appColors.accent100,
             onPressed: onToggleSidebar,
           ),
-          Container(
-            constraints: BoxConstraints(minWidth: 200, maxWidth: 400),
-            decoration: BoxDecoration(
-              border: BoxBorder.all(width: 0.5, color: appColors.gray600),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: Text(
-                context
-                        .watch<EntityState<LeagueAdministratorModel>>()
-                        .entity
-                        ?.organization_name ??
-                    'No data',
-                style: TextStyle(
-                  fontSize: Sizes.fontSizeSm,
-                  color: appColors.gray100,
-                ),
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
+          Padding(
+            padding: const EdgeInsets.all(2),
+            child: Text(
+              context
+                      .watch<EntityState<LeagueAdministratorModel>>()
+                      .entity
+                      ?.organization_name ??
+                  'No data',
+              style: TextStyle(
+                fontSize: Sizes.fontSizeSm,
+                color: appColors.gray100,
               ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ),
           PopupMenuButton<String>(

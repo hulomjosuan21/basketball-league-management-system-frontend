@@ -113,27 +113,19 @@ class LeagueModel {
       league_administrator: LeagueAdministratorModel.fromJson(
         json['league_administrator'],
       ),
-      championship_trophies:
-          (json['championship_trophies'] as List?)
-              ?.map((e) => ImageModel.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      league_teams:
-          (json['league_teams'] as List?)
-              ?.map((e) => LeagueTeamModel.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+      championship_trophies: (json['championship_trophies'] as List)
+          .map((e) => ImageModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      league_teams: (json['league_teams'] as List)
+          .map((e) => LeagueTeamModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
       categories: (json['categories'] as List)
           .map((e) => LeagueCategoryModel.fromJson(e))
           .toList(),
       banner_url: json['banner_url'] ?? null,
       sponsors: json['sponsors'] ?? null,
-      created_at: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
-          : null,
-      updated_at: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'])
-          : null,
+      created_at: DateTime.parse(json['created_at']),
+      updated_at: DateTime.parse(json['updated_at']),
     );
   }
 
@@ -185,7 +177,7 @@ class LeagueModel {
 }
 
 class LeagueCategoryModel {
-  String? category_id;
+  late String category_id;
   late String league_id;
 
   String category_name;
@@ -202,7 +194,7 @@ class LeagueCategoryModel {
   List<LeagueTeamModel>? category_teams;
 
   LeagueCategoryModel({
-    this.category_id,
+    required this.category_id,
     required this.league_id,
     required this.category_name,
     required this.category_format,

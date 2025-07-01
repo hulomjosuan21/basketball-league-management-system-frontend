@@ -1,6 +1,7 @@
 import 'package:bogoballers/client/screens/notification_screen.dart';
 import 'package:bogoballers/core/theme/colors.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
+import 'package:bogoballers/core/widgets/alerts.dart';
 import 'package:bogoballers/core/widgets/flexible_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -32,22 +33,24 @@ class _PlayerHomeScreenState extends State<PlayerHomeScreen> {
     }
   }
 
+  bool _showBanner = true;
+
   @override
   Widget build(BuildContext context) {
-    final appColors = context.appColors;
-
     return Scaffold(
       body: CustomScrollView(
         physics: BouncingScrollPhysics(),
         slivers: [
           _buildSliverAppBar(),
-
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) => ListTile(title: Text('Item ${index + 1}')),
-              childCount: 20,
+          if (_showBanner)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: buildInfoAlert("Test!", () {
+                  setState(() => _showBanner = false);
+                }),
+              ),
             ),
-          ),
         ],
       ),
     );
