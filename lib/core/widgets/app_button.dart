@@ -42,7 +42,7 @@ class AppButton extends MaterialButton {
         borderSide = BorderSide.none;
         break;
       case ButtonVariant.secondary:
-        backgroundColor = colors.accent100;
+        backgroundColor = colors.gray300;
         textColor = colors.gray1100;
         borderSide = BorderSide.none;
         break;

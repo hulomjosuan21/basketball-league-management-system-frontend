@@ -13,4 +13,17 @@ class PlayerServices {
     final apiResponse = ApiResponse.fromJsonNoPayload(response.data);
     return apiResponse;
   }
+
+  static Future<ApiResponse> updatePlayer({
+    required String player_id,
+    required Map<String, dynamic> json,
+  }) async {
+    final api = DioClient().client;
+    Response response = await api.put(
+      '/player/update/profile/${player_id}',
+      data: json,
+    );
+    final apiResponse = ApiResponse.fromJsonNoPayload(response.data);
+    return apiResponse;
+  }
 }

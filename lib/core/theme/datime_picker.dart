@@ -1,5 +1,6 @@
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 ThemeData datePickerPopupTheme(BuildContext context) => ThemeData(
   dialogTheme: DialogThemeData(
@@ -41,14 +42,18 @@ class DateTimePickerField extends StatelessWidget {
     this.onChanged,
   });
 
+  String _formatDate(DateTime? date) {
+    if (date == null) return '';
+    final format = includeTime ? 'yyyy-MM-dd HH:mm' : 'yyyy-MM-dd';
+    return DateFormat(format).format(date);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final textColor = enabled ? null : Theme.of(context).disabledColor;
-    final displayText = selectedDate != null
-        ? (includeTime
-              ? selectedDate!.toLocal().toString().split('.').first
-              : selectedDate!.toLocal().toString().split(' ')[0])
-        : '';
+    final displayText = _formatDate(selectedDate);
+    final textColor = enabled
+        ? Theme.of(context).textTheme.bodyLarge?.color
+        : Theme.of(context).disabledColor;
 
     return InkWell(
       onTap: () async {
@@ -66,9 +71,11 @@ class DateTimePickerField extends StatelessWidget {
 
         if (pickedDate != null && context.mounted) {
           if (includeTime) {
-            TimeOfDay? pickedTime = await showTimePicker(
+            final pickedTime = await showTimePicker(
               context: context,
-              initialTime: TimeOfDay.now(),
+              initialTime: TimeOfDay.fromDateTime(
+                selectedDate ?? DateTime.now(),
+              ),
               builder: (BuildContext context, Widget? child) {
                 return Theme(
                   data: datePickerPopupTheme(context),
@@ -96,6 +103,7 @@ class DateTimePickerField extends StatelessWidget {
           labelText: labelText,
           suffixIcon: const Icon(Icons.calendar_today),
           helperText: helperText,
+          enabled: enabled,
         ),
         child: Text(
           displayText.isNotEmpty ? displayText : 'Select a date',
@@ -103,5 +111,10 @@ class DateTimePickerField extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  ThemeData datePickerPopupTheme(BuildContext context) {
+    // You can customize this if needed
+    return Theme.of(context);
   }
 }
