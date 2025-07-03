@@ -11,6 +11,7 @@ import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/utils/error_handling.dart';
 import 'package:bogoballers/core/widgets/app_button.dart';
 import 'package:bogoballers/core/widgets/flexible_network_image.dart';
+import 'package:bogoballers/core/widgets/image_picker.dart';
 import 'package:bogoballers/core/widgets/setting_menu_list.dart';
 import 'package:bogoballers/core/service_locator.dart';
 import 'package:bogoballers/core/widgets/snackbars.dart';
@@ -110,13 +111,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                     SettingsMenuItem(
                       icon: Icons.file_upload_sharp,
                       label: 'Documents',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              PlayerDocumentScreen(player_id: player.player_id),
-                        ),
-                      ),
+                      content: ProfileEditDocuments(originalPlayer: player),
                     ),
                     SettingsMenuItem(
                       icon: Icons.settings,
@@ -157,6 +152,42 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
 
   Future<String?> _handleEdit() async {
     return null;
+  }
+}
+
+class ProfileEditDocuments extends StatefulWidget {
+  final PlayerModel originalPlayer;
+  const ProfileEditDocuments({super.key, required this.originalPlayer});
+
+  @override
+  State<ProfileEditDocuments> createState() => _ProfileEditDocumentsState();
+}
+
+class _ProfileEditDocumentsState extends State<ProfileEditDocuments> {
+  final AppImagePickerController _document1 = AppImagePickerController();
+  final AppImagePickerController _document2 = AppImagePickerController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AppImagePicker(controller: _document1, aspectRatio: 9 / 16, width: 180),
+        SizedBox(height: Sizes.spaceSm),
+        AppButton(
+          label: 'Select image',
+          onPressed: _document1.pickImage,
+          size: ButtonSize.sm,
+        ),
+        SizedBox(height: Sizes.spaceSm),
+        AppImagePicker(controller: _document2, aspectRatio: 9 / 16, width: 180),
+        SizedBox(height: Sizes.spaceSm),
+        AppButton(
+          label: 'Select image',
+          onPressed: _document2.pickImage,
+          size: ButtonSize.sm,
+        ),
+      ],
+    );
   }
 }
 
