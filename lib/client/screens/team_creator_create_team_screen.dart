@@ -1,7 +1,6 @@
 import 'package:bogoballers/core/enums/user_enum.dart';
 import 'package:bogoballers/core/models/user.dart';
 import 'package:bogoballers/core/state/entity_state.dart';
-import 'package:bogoballers/core/state/team_provider.dart';
 import 'package:bogoballers/core/widgets/phone_number_input.dart';
 import 'package:bogoballers/core/widgets/app_button.dart';
 import 'package:bogoballers/core/widgets/image_picker.dart';
@@ -88,8 +87,6 @@ class _TeamCreatorCreateTeamScreenState
 
       final newTeam = response.payload;
       if (newTeam == null) throw Exception("Failed to create team");
-
-      getIt<TeamProvider>().addTeam(newTeam);
 
       if (mounted) {
         showAppSnackbar(

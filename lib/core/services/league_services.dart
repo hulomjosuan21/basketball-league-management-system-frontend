@@ -4,6 +4,21 @@ import 'package:bogoballers/core/network/dio_client.dart';
 import 'package:dio/dio.dart';
 
 class LeagueServices {
+  Future<List<LeagueModel>?> fetchLeaguesForCarousel() async {
+    final api = DioClient().client;
+
+    final response = await api.get('/league/fetch');
+
+    final apiResponse = ApiResponse<List<LeagueModel>>.fromJson(
+      response.data,
+      (data) => (data as List)
+          .map((e) => LeagueModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+    return apiResponse.payload;
+  }
+
   Future<ApiResponse<String>> createNewLeague(LeagueModel league) async {
     final api = DioClient().client;
 
@@ -82,7 +97,7 @@ class LeagueServices {
     }
   }
 
-  Future<ApiResponse> joinTeam({
+  static Future<ApiResponse> joinTeam({
     required String league_id,
     required String team_id,
     required String category_id,
@@ -95,7 +110,7 @@ class LeagueServices {
       'category_id': category_id,
     };
 
-    final response = await api.patch('league/accept-team', data: data);
+    final response = await api.patch('/league/accept-team', data: data);
 
     final apiResponse = ApiResponse.fromJsonNoPayload(response.data);
 

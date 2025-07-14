@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:bogoballers/core/constants/sizes.dart';
-import 'package:bogoballers/core/enums/user_enum.dart';
 import 'package:bogoballers/core/helpers/formatNotificationTime.dart';
 import 'package:bogoballers/core/models/notification_model.dart';
 import 'package:bogoballers/core/models/team_model.dart';
 import 'package:bogoballers/core/network/api_response.dart';
+import 'package:bogoballers/core/providers/notification_providers.dart';
 import 'package:bogoballers/core/services/notification_model_serices.dart';
 import 'package:bogoballers/core/services/team_service.dart';
 import 'package:bogoballers/core/socket_controller.dart';
@@ -13,30 +13,29 @@ import 'package:bogoballers/core/state/app_state.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/utils/error_handling.dart';
 import 'package:bogoballers/core/widgets/app_button.dart';
-import 'package:bogoballers/core/widgets/error.dart';
 import 'package:bogoballers/core/widgets/flexible_network_image.dart';
 import 'package:bogoballers/core/widgets/snackbars.dart';
 import 'package:flutter/material.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
 
-class NotificationScreen extends StatefulWidget {
-  const NotificationScreen({this.enableBack = false, super.key});
+class NotificationsScreen extends ConsumerStatefulWidget {
+  const NotificationsScreen({super.key, this.enableBack = true});
+
   final bool enableBack;
 
   @override
-  State<NotificationScreen> createState() => _NotificationScreenState();
+  ConsumerState<NotificationsScreen> createState() =>
+      _NotificationsScreenState();
 }
 
-class _NotificationScreenState extends State<NotificationScreen> {
-  late Future<void> _futureFetchNotifications;
-
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+  List<NotificationModel> _localNotifications = [];
   String? loadingNotificationId;
 
   @override
   void initState() {
     super.initState();
-    _futureFetchNotifications = fetchNotifications();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         final socketService = SocketService();
@@ -55,44 +54,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
     });
   }
 
-  Future<void> fetchNotifications({bool refresh = false}) async {
-    final appState = context.read<AppState>();
-    try {
-      if (appState.user_id == null) EntityNotFound(AccountTypeEnum.PLAYER);
-      if (refresh) {
-        appState.resetFetchedFlag();
-      }
-      await appState.fetchNotificationsOnce(appState.user_id!);
-    } on EntityNotFound catch (e) {
-      if (context.mounted) {
-        showAppSnackbar(
-          context,
-          message: e.toString(),
-          title: "Error",
-          variant: SnackbarVariant.error,
-        );
-
-        Navigator.pushReplacementNamed(context, '/client/login/sreen');
-      }
-    } catch (e) {
-      if (context.mounted) {
-        handleErrorCallBack(e, (message) {
-          showAppSnackbar(
-            context,
-            message: message,
-            title: "Error",
-            variant: SnackbarVariant.error,
-          );
-        });
-      }
-    }
-  }
-
   void _handleNotification(dynamic payload) {
-    if (!mounted) return;
-
     final notif = NotificationModel.fromDynamicJson(payload);
-    context.read<AppState>().addNotification(notif);
+    setState(() {
+      _localNotifications.insert(0, notif);
+    });
   }
 
   @override
@@ -104,25 +70,30 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
     final appColors = context.appColors;
-    final notifList = context.watch<AppState>().notifications;
+    final userId = context.read<AppState>().user_id;
+
+    if (userId == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showAppSnackbar(
+          context,
+          message: "Unauthorized access",
+          title: "Error",
+          variant: SnackbarVariant.error,
+        );
+        Navigator.pushReplacementNamed(context, '/client/login/screen');
+      });
+      return const SizedBox.shrink();
+    }
+
+    final state = watchNotifications(ref, userId);
+    final combinedNotifications = [
+      ..._localNotifications,
+      ...(state.notifications ?? []),
+    ];
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: appColors.gray200,
         centerTitle: true,
-        iconTheme: IconThemeData(color: appColors.gray1100),
-        leading: widget.enableBack
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.of(context).pop(),
-              )
-            : null,
-        actions: const [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: Sizes.spaceXs),
-            child: Icon(Iconsax.setting_4),
-          ),
-        ],
         title: Text(
           "Notifications",
           style: TextStyle(
@@ -131,42 +102,57 @@ class _NotificationScreenState extends State<NotificationScreen> {
             color: appColors.gray1100,
           ),
         ),
+        iconTheme: IconThemeData(color: appColors.gray1100),
+        backgroundColor: appColors.gray200,
       ),
       body: RefreshIndicator(
         color: appColors.accent900,
-        onRefresh: () => fetchNotifications(refresh: true),
-        child: FutureBuilder(
-          future: _futureFetchNotifications,
-          builder: (context, asyncSnapshot) {
-            if (asyncSnapshot.connectionState == ConnectionState.waiting) {
-              return Center(
+        onRefresh: () async => state.refetch(),
+        child: state.isLoading
+            ? Center(
                 child: CircularProgressIndicator(color: appColors.accent900),
-              );
-            } else if (asyncSnapshot.hasError) {
-              final error = asyncSnapshot.error;
-              return retryError(context, error, _retry);
-            } else {
-              return Padding(
-                padding: const EdgeInsets.all(Sizes.spaceSm),
-                child: notifList.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No notifications yet',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: notifList.length,
-                        itemBuilder: (context, index) {
-                          final notif = notifList[index];
-                          return _buildNotificationCard(n: notif);
-                        },
-                      ),
-              );
-            }
-          },
-        ),
+              )
+            : state.isError
+            ? _errorWidget(state.refetch)
+            : combinedNotifications.isEmpty
+            ? Center(child: Text("No notifications yet"))
+            : Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ListView.builder(
+                  itemCount: combinedNotifications.length,
+                  itemBuilder: (context, index) {
+                    final notif = combinedNotifications[index];
+                    return _buildNotificationCard(n: notif);
+                  },
+                ),
+            ),
       ),
+    );
+  }
+
+  Widget _errorWidget(void Function() refetch) {
+    return ListView(
+      children: [
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              children: [
+                const Text(
+                  "Failed to load notifications",
+                  style: TextStyle(color: Colors.red),
+                ),
+                const SizedBox(height: 16),
+                AppButton(
+                  label: "Retry",
+                  size: ButtonSize.sm,
+                  onPressed: refetch,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -350,9 +336,5 @@ class _NotificationScreenState extends State<NotificationScreen> {
         ],
       ),
     );
-  }
-
-  void _retry() {
-    setState(() => _futureFetchNotifications = fetchNotifications());
   }
 }

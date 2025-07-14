@@ -6,9 +6,7 @@ import 'package:bogoballers/core/constants/sizes.dart';
 import 'package:bogoballers/core/extensions/extensions.dart';
 import 'package:bogoballers/core/helpers/helpers.dart';
 import 'package:bogoballers/core/models/team_model.dart';
-import 'package:bogoballers/core/service_locator.dart';
 import 'package:bogoballers/core/services/team_service.dart';
-import 'package:bogoballers/core/state/team_provider.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/utils/error_handling.dart';
 import 'package:bogoballers/core/widgets/app_button.dart';
@@ -68,17 +66,6 @@ class _TeamCreatorTeamScreenState extends State<TeamCreatorTeamScreen> {
 
     setState(() {
       _hasChanges = isNameChanged || isMotoChanged;
-    });
-  }
-
-  Future<void> _handleEdit() async {}
-
-  Future<void> _handleEditRecruit(bool value) async {
-    final updatedTeam = team.copyWith(is_recruiting: value);
-    getIt<TeamProvider>().editTeam(updatedTeam);
-
-    setState(() {
-      team = updatedTeam;
     });
   }
 
@@ -229,7 +216,7 @@ class _TeamCreatorTeamScreenState extends State<TeamCreatorTeamScreen> {
                   ),
                   Switch(
                     value: team.is_recruiting,
-                    onChanged: (value) => _handleEditRecruit(value),
+                    onChanged: (value) {},
                     activeColor: appColors.accent900,
                   ),
                 ],

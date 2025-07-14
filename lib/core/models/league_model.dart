@@ -22,7 +22,6 @@ class LeagueModel {
   String league_description;
 
   late LeagueAdministratorModel league_administrator;
-  late List<LeagueTeamModel> league_teams;
   late List<LeagueCategoryModel> categories;
   late List<ImageModel> championship_trophies;
 
@@ -44,7 +43,6 @@ class LeagueModel {
     required this.season_year,
     required this.league_rules,
     required this.league_administrator,
-    required this.league_teams,
     required this.categories,
     this.championship_trophies = const [],
     this.banner_url,
@@ -116,9 +114,6 @@ class LeagueModel {
       championship_trophies: (json['championship_trophies'] as List)
           .map((e) => ImageModel.fromJson(e as Map<String, dynamic>))
           .toList(),
-      league_teams: (json['league_teams'] as List)
-          .map((e) => LeagueTeamModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
       categories: (json['categories'] as List)
           .map((e) => LeagueCategoryModel.fromJson(e))
           .toList(),
@@ -146,7 +141,6 @@ class LeagueModel {
     String? league_format,
     String? sponsors,
     LeagueAdministratorModel? league_administrator,
-    List<LeagueTeamModel>? league_teams,
     List<LeagueCategoryModel>? categories,
     DateTime? created_at,
     DateTime? updated_at,
@@ -168,7 +162,6 @@ class LeagueModel {
       league_rules: league_rules ?? this.league_rules,
       sponsors: sponsors ?? this.sponsors,
       league_administrator: league_administrator ?? this.league_administrator,
-      league_teams: league_teams ?? this.league_teams,
       categories: categories ?? this.categories,
       created_at: created_at ?? this.created_at,
       updated_at: updated_at ?? this.updated_at,
@@ -191,8 +184,6 @@ class LeagueCategoryModel {
   late DateTime created_at;
   late DateTime updated_at;
 
-  List<LeagueTeamModel>? category_teams;
-
   LeagueCategoryModel({
     required this.category_id,
     required this.league_id,
@@ -200,7 +191,6 @@ class LeagueCategoryModel {
     required this.category_format,
     required this.stage,
     required this.max_team,
-    this.category_teams,
     required this.created_at,
     required this.updated_at,
     required this.entrance_fee_amount,
@@ -234,12 +224,6 @@ class LeagueCategoryModel {
       entrance_fee_amount: (json['entrance_fee_amount'] as num).toDouble(),
       stage: json['stage'],
       max_team: json['max_team'],
-      category_teams:
-          (json['category_teams'] as List?)
-              ?.map((e) => LeagueTeamModel.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-
       created_at: DateTime.parse(json['created_at']),
       updated_at: DateTime.parse(json['updated_at']),
       accept_teams: json['accept_teams'],
@@ -264,7 +248,6 @@ class LeagueCategoryModel {
       category_format: category_format ?? this.category_format,
       stage: stage ?? this.stage,
       max_team: max_team ?? this.max_team,
-      category_teams: category_teams ?? this.category_teams,
       created_at: created_at ?? this.created_at,
       updated_at: updated_at ?? this.updated_at,
       entrance_fee_amount: entrance_fee_amount,

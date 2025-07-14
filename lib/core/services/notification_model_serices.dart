@@ -3,7 +3,7 @@ import 'package:bogoballers/core/network/api_response.dart';
 import 'package:bogoballers/core/network/dio_client.dart';
 
 class NotificationModelSerices {
-  Future<ApiResponse<List<NotificationModel>>?> fetchNotifications(
+  Future<List<NotificationModel>?> fetchNotifications(
     String user_id,
   ) async {
     final api = DioClient().client;
@@ -16,7 +16,7 @@ class NotificationModelSerices {
           .toList(),
     );
 
-    return apiResponse;
+    return apiResponse.payload;
   }
 
   Future<ApiResponse> nullifyAction(String notification_id) async {

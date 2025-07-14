@@ -1,7 +1,4 @@
-// ignore_for_file: non_constant_identifier_names
 import 'dart:io';
-
-import 'package:bogoballers/core/models/league_model.dart';
 import 'package:dio/dio.dart';
 
 enum TeamInviteStatus {
@@ -123,20 +120,17 @@ class TeamModel {
   late int total_losses;
   late bool is_recruiting;
   String? team_captain_id;
-  LeagueModel? active_league;
   List<PlayerTeamModel> players;
 
   late MultipartFile team_logo_image;
   late DateTime created_at;
   late DateTime updated_at;
 
-  String? team_category;
 
   factory TeamModel.fromJson(Map<String, dynamic> json) {
     return TeamModel(
       team_id: json['team_id'],
       user_id: json['user_id'],
-      active_league: json['active_league'] ?? null,
       team_name: json['team_name'],
       team_address: json['team_address'],
       contact_number: json['contact_number'],
@@ -148,7 +142,6 @@ class TeamModel {
       total_wins: json['total_wins'],
       total_losses: json['total_losses'] ?? 0,
       is_recruiting: json['is_recruiting'] ?? 0,
-      team_category: json['team_category'] ?? 'No selected',
       created_at: DateTime.parse(json['created_at']),
       updated_at: DateTime.parse(json['updated_at']),
       players: (json['players'] as List)
@@ -165,7 +158,6 @@ class TeamModel {
     required this.contact_number,
     required this.team_motto,
     required this.coach_name,
-    this.active_league,
     this.assistant_coach_name,
     required this.team_logo_url,
     required this.championships_won,
@@ -176,7 +168,6 @@ class TeamModel {
     this.players = const [],
     required this.total_wins,
     required this.total_losses,
-    required this.team_category,
   });
 
   TeamModel copyWith({
@@ -205,8 +196,6 @@ class TeamModel {
       total_losses: total_losses,
       is_recruiting: is_recruiting ?? this.is_recruiting,
       team_captain_id: team_captain_id ?? this.team_captain_id,
-      active_league: active_league ?? this.active_league,
-      team_category: team_category ?? this.team_category,
       created_at: created_at,
       updated_at: updated_at,
     );
@@ -230,8 +219,6 @@ class TeamModel {
       updatedFields['is_recruiting'] = is_recruiting;
     if (team_captain_id != original.team_captain_id)
       updatedFields['team_captain_id'] = team_captain_id;
-    if (team_category != original.team_category)
-      updatedFields['team_category'] = team_category;
 
     return updatedFields;
   }
@@ -240,7 +227,6 @@ class TeamModel {
     return {
       'team_id': team_id,
       'user_id': user_id,
-      'active_league': active_league.toString(),
       'team_name': team_name,
       'team_address': team_address,
       'contact_number': contact_number,
@@ -254,7 +240,6 @@ class TeamModel {
       'is_recruiting': is_recruiting,
       'created_at': created_at,
       'updated_at': updated_at,
-      'team_category': team_category,
     };
   }
 

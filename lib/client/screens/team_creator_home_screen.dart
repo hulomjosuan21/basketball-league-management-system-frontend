@@ -1,35 +1,26 @@
 import 'package:bogoballers/client/widgets/league_carousel.dart';
 import 'package:bogoballers/core/constants/sizes.dart';
 import 'package:bogoballers/core/helpers/logout.dart';
-import 'package:bogoballers/core/service_locator.dart';
-import 'package:bogoballers/core/state/league_state.dart';
+import 'package:bogoballers/core/providers/league_providers.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class TeamCreatorHomeScreen extends StatefulWidget {
+class TeamCreatorHomeScreen extends ConsumerStatefulWidget {
   const TeamCreatorHomeScreen({super.key});
 
   @override
-  State<TeamCreatorHomeScreen> createState() => _TeamCreatorHomeScreenState();
+  ConsumerState<TeamCreatorHomeScreen> createState() =>
+      _TeamCreatorHomeScreenState();
 }
 
-class _TeamCreatorHomeScreenState extends State<TeamCreatorHomeScreen> {
+class _TeamCreatorHomeScreenState extends ConsumerState<TeamCreatorHomeScreen> {
   final SearchController _searchController = SearchController();
   final FocusNode _focusNode = FocusNode();
-
-  late Future<void> _leagueFuture;
 
   @override
   void initState() {
     super.initState();
-    _leagueFuture = fetchLeague();
-  }
-
-  Future<void> fetchLeague({bool refresh = false}) async {
-    if (refresh) {
-      getIt<LeagueProvider>().resetLeagueFetchedFlag();
-    }
-    await getIt<LeagueProvider>().fetchLeaguesOnce();
   }
 
   @override
@@ -38,11 +29,11 @@ class _TeamCreatorHomeScreenState extends State<TeamCreatorHomeScreen> {
 
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: () {
-          setState(() {
-            _leagueFuture = fetchLeague(refresh: true);
-          });
-          return _leagueFuture;
+        onRefresh: () async {
+          final _ = ref.refresh(leagueCarouselProvider);
+          await ref.read(
+            leagueCarouselProvider.future,
+          ); // wait for fetch to finish
         },
         edgeOffset: 100,
         color: appColors.accent900,
@@ -77,7 +68,9 @@ class _TeamCreatorHomeScreenState extends State<TeamCreatorHomeScreen> {
                 ),
               ),
             ),
-            SliverToBoxAdapter(child: LeagueCarousel(future: _leagueFuture)),
+            SliverToBoxAdapter(
+              child: LeagueCarousel(),
+            ),
           ],
         ),
       ),

@@ -1,5 +1,4 @@
 import 'package:bogoballers/client/screens/notification_screen.dart';
-import 'package:bogoballers/client/screens/player_document_screen.dart';
 import 'package:bogoballers/core/constants/sizes.dart';
 import 'package:bogoballers/core/extensions/extensions.dart';
 import 'package:bogoballers/core/helpers/logout.dart';
@@ -145,7 +144,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => NotificationScreen(enableBack: true),
+        builder: (context) => NotificationsScreen(enableBack: true),
       ),
     );
   }

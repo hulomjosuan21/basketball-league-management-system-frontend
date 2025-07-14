@@ -1,5 +1,4 @@
 import 'package:bogoballers/client/screens/notification_screen.dart';
-import 'package:bogoballers/core/theme/colors.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/widgets/alerts.dart';
 import 'package:bogoballers/core/widgets/flexible_network_image.dart';
@@ -22,7 +21,7 @@ class _PlayerHomeScreenState extends State<PlayerHomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => NotificationScreen(enableBack: true),
+        builder: (context) => NotificationsScreen(enableBack: true),
       ),
     );
   }

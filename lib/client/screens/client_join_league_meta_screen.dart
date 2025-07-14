@@ -1,9 +1,14 @@
+import 'package:bogoballers/client/screens/team_creator_list_team_screen.dart';
 import 'package:bogoballers/core/constants/sizes.dart';
 import 'package:bogoballers/core/extensions/extensions.dart';
 import 'package:bogoballers/core/models/league_model.dart';
+import 'package:bogoballers/core/models/team_model.dart';
+import 'package:bogoballers/core/services/league_services.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
+import 'package:bogoballers/core/utils/error_handling.dart';
 import 'package:bogoballers/core/widgets/app_button.dart';
 import 'package:bogoballers/core/widgets/flexible_network_image.dart';
+import 'package:bogoballers/core/widgets/snackbars.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
@@ -17,6 +22,7 @@ class JoinLeagueMetaScreen extends StatefulWidget {
 
 class _JoinLeagueMetaScreenState extends State<JoinLeagueMetaScreen> {
   late LeagueModel league;
+  bool isJoining = false;
 
   @override
   void initState() {
@@ -32,10 +38,6 @@ class _JoinLeagueMetaScreenState extends State<JoinLeagueMetaScreen> {
       appBar: AppBar(
         backgroundColor: appColors.gray200,
         iconTheme: IconThemeData(color: appColors.gray1100),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(Sizes.spaceMd),
@@ -196,7 +198,12 @@ class _JoinLeagueMetaScreenState extends State<JoinLeagueMetaScreen> {
                     ),
                   ),
                 const Spacer(),
-                AppButton(onPressed: () {}, label: "Join", size: ButtonSize.sm),
+                AppButton(
+                  onPressed: () => _handleGotoTeams(category),
+                  label: isJoining ? "Joining...": "Join",
+                  size: ButtonSize.sm,
+                  isDisabled: isJoining,
+                ),
               ],
             ),
             const SizedBox(height: Sizes.spaceXs),
@@ -225,5 +232,53 @@ class _JoinLeagueMetaScreenState extends State<JoinLeagueMetaScreen> {
       ),
       blockSpacing: 4,
     );
+  }
+
+  void _handleGotoTeams(LeagueCategoryModel c) {
+    setState(() => isJoining = true);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TeamCreatorTeamListScreen(
+          selectable: true,
+          onDoubleTapSelectedTeam: (t) => _onDoubleTapSelectedTeam(t, c),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onDoubleTapSelectedTeam(
+    TeamModel t,
+    LeagueCategoryModel c,
+  ) async {
+      Navigator.pop(context, t);
+    try {
+      final response = await LeagueServices.joinTeam(
+        league_id: league.league_id,
+        team_id: t.team_id,
+        category_id: c.category_id,
+      );
+      if (mounted) {
+        showAppSnackbar(
+          context,
+          message: response.message,
+          title: "Success",
+          variant: SnackbarVariant.success,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        handleErrorCallBack(e, (message) {
+          showAppSnackbar(
+            context,
+            message: message,
+            title: "Error",
+            variant: SnackbarVariant.error,
+          );
+        });
+      }
+    } finally {
+      setState(() => isJoining = false);
+    }
   }
 }

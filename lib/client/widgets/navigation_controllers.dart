@@ -23,6 +23,6 @@ class TeamCreatorScreenNavigationController extends GetxController {
   final screens = [
     TeamCreatorHomeScreen(),
     TeamCreatorTeamListScreen(),
-    NotificationScreen(),
+    NotificationsScreen(),
   ];
 }
