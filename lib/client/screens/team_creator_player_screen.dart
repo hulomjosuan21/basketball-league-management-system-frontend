@@ -1,5 +1,7 @@
 import 'dart:async';
-
+import 'package:bogoballers/core/providers/player_team_providers.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bogoballers/core/constants/sizes.dart';
 import 'package:bogoballers/core/extensions/extensions.dart';
 import 'package:bogoballers/core/helpers/helpers.dart';
@@ -7,99 +9,26 @@ import 'package:bogoballers/core/models/team_model.dart';
 import 'package:bogoballers/core/services/team_service.dart';
 import 'package:bogoballers/core/theme/theme_extensions.dart';
 import 'package:bogoballers/core/utils/error_handling.dart';
-import 'package:bogoballers/core/widgets/flexible_network_image.dart';
 import 'package:bogoballers/core/widgets/index.dart';
+import 'package:bogoballers/core/widgets/flexible_network_image.dart';
 import 'package:bogoballers/core/widgets/snackbars.dart';
-import 'package:flutter/material.dart';
+import 'package:bogoballers/core/models/player_model_beta.dart';
+import 'package:bogoballers/core/services/team_creator_services.dart';
 
-class TeamCreatorTeamPlayerScreen extends StatefulWidget {
+class TeamCreatorTeamPlayerScreen extends ConsumerStatefulWidget {
   const TeamCreatorTeamPlayerScreen({required this.team, super.key});
 
   final TeamModel team;
 
   @override
-  State<TeamCreatorTeamPlayerScreen> createState() =>
+  ConsumerState<TeamCreatorTeamPlayerScreen> createState() =>
       _TeamCreatorTeamPlayerScreenState();
 }
 
 class _TeamCreatorTeamPlayerScreenState
-    extends State<TeamCreatorTeamPlayerScreen> {
-  late TeamModel team;
+    extends ConsumerState<TeamCreatorTeamPlayerScreen> {
   bool isInviting = false;
-
   final nameOrEmailController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    team = widget.team;
-    print(team.players.toList());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final appColors = context.appColors;
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: appColors.gray200,
-        flexibleSpace: Container(color: appColors.gray200),
-        iconTheme: IconThemeData(color: appColors.gray1100),
-        centerTitle: true,
-        title: Text(
-          "Players",
-          maxLines: 1,
-          overflow: TextOverflow.fade,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: Sizes.fontSizeMd,
-            color: appColors.gray1100,
-          ),
-        ),
-      ),
-      body: Column(
-        children: [_buildInvitePlayerInput(), _buildPlayerListCards()],
-      ),
-    );
-  }
-
-  Padding _buildInvitePlayerInput() {
-    return Padding(
-      padding: const EdgeInsets.all(Sizes.spaceMd),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: TextField(
-              controller: nameOrEmailController,
-              decoration: InputDecoration(
-                label: Text("Invite Player"),
-                helperText: "Player email or name",
-              ),
-            ),
-          ),
-          SizedBox(width: Sizes.spaceSm),
-          AppButton(
-            label: 'Invite',
-            onPressed: _handleInvitePlayer,
-            isDisabled: isInviting,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlayerListCards() {
-    return Expanded(
-      child: ListView.builder(
-        itemCount: team.players.length,
-        itemBuilder: (context, index) {
-          final player = team.players[index];
-          return TeamPlayerCard(player: player);
-        },
-      ),
-    );
-  }
 
   Future<void> _handleInvitePlayer() async {
     setState(() => isInviting = true);
@@ -107,9 +36,10 @@ class _TeamCreatorTeamPlayerScreenState
       if (nameOrEmailController.text.isEmpty) {
         throw Exception("Please enter a name or email to invite.");
       }
+
       final service = TeamService();
       final response = await service.invitePlayer(
-        team_id: team.team_id,
+        team_id: widget.team.team_id,
         name_or_email: nameOrEmailController.text,
       );
 
@@ -122,20 +52,12 @@ class _TeamCreatorTeamPlayerScreenState
             variant: SnackbarVariant.success,
           );
           nameOrEmailController.clear();
+          ref.invalidate(
+            playerTeamProvider(widget.team.team_id),
+          ); // Refresh players
         }
       } else {
         throw Exception(response.message);
-      }
-    } on EntityNotFound catch (e) {
-      if (context.mounted) {
-        showAppSnackbar(
-          context,
-          message: e.toString(),
-          title: "Error",
-          variant: SnackbarVariant.error,
-        );
-
-        Navigator.pushReplacementNamed(context, '/client/login/sreen');
       }
     } catch (e) {
       if (context.mounted) {
@@ -154,130 +76,126 @@ class _TeamCreatorTeamPlayerScreenState
       }
     }
   }
-}
-
-class TeamPlayerCard extends StatefulWidget {
-  const TeamPlayerCard({super.key, required this.player});
-
-  final PlayerTeamModel player;
 
   @override
-  State<TeamPlayerCard> createState() => _TeamPlayerCardState();
-}
+  Widget build(BuildContext context) {
+    final appColors = context.appColors;
 
-class _TeamPlayerCardState extends State<TeamPlayerCard> {
-  late PlayerTeamModel player; // mutable reference
+    final asyncPlayers = ref.watch(playerTeamProvider(widget.team.team_id));
 
-  @override
-  void initState() {
-    super.initState();
-    player = widget.player; // make a copy you can modify
-  }
-
-  void _showPlayerBottomSheet() {
-    final messageController = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(Sizes.radiusSm),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: appColors.gray200,
+        iconTheme: IconThemeData(color: appColors.gray1100),
+        centerTitle: true,
+        title: Text(
+          "Players",
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: Sizes.fontSizeMd,
+            color: appColors.gray1100,
+          ),
         ),
       ),
-      isScrollControlled: true,
-      builder: (_) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: Sizes.spaceMd,
-            right: Sizes.spaceMd,
-            bottom: MediaQuery.of(context).viewInsets.bottom + Sizes.spaceMd,
-            top: Sizes.spaceMd,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Center(
-                child: Text(
-                  player.full_name.orNoData(),
-                  style: const TextStyle(
-                    fontSize: Sizes.fontSizeMd,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+      body: Column(
+        children: [
+          _buildInvitePlayerInput(),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(playerTeamProvider(widget.team.team_id));
+                await Future.delayed(const Duration(milliseconds: 600));
+              },
+              child: asyncPlayers.when(
+                data: (players) {
+                  if (players == null || players.isEmpty) {
+                    return ListView(
+                      physics: AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(height: 100),
+                        Center(child: Text("No players yet.")),
+                      ],
+                    );
+                  }
 
-              const SizedBox(height: Sizes.spaceSm),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: messageController,
-                      decoration: const InputDecoration(
-                        labelText: "Send Message/feedback",
-                        border: OutlineInputBorder(),
-                      ),
-                      minLines: 1,
-                      maxLines: 2,
-                    ),
-                  ),
-                  const SizedBox(width: Sizes.spaceSm),
-
-                  IconButton(
-                    icon: const Icon(Icons.send),
-                    onPressed: () {
-                      // Handle message sending logic here
-                      Navigator.pop(context);
-                      showAppSnackbar(
-                        context,
-                        title: "Message Sent",
-                        message:
-                            "Your message has been sent to ${player.full_name}.",
-                        variant: SnackbarVariant.success,
-                      );
+                  return ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: players.length,
+                    itemBuilder: (context, index) {
+                      final player = players[index].player;
+                      return TeamPlayerCard(player: player);
                     },
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: Sizes.spaceMd),
-
-              AppButton(
-                label: "Make Team Captain",
-                size: ButtonSize.sm,
-                onPressed: () {
-                  // // Simulate modification
-                  // setState(() {
-                  //   player.isCaptain = true; // assuming this exists
-                  // });
-
-                  Navigator.pop(context);
-
-                  showAppSnackbar(
-                    context,
-                    title: "Updated",
-                    message: "${player.full_name} is now the team captain.",
-                    variant: SnackbarVariant.success,
                   );
                 },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, _) => ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    const SizedBox(height: 100),
+                    Center(
+                      child: Column(
+                        children: [
+                          Text("Failed to load players"),
+                          SizedBox(height: Sizes.spaceSm),
+                          AppButton(
+                            label: "Retry",
+                            onPressed: () => ref.invalidate(
+                              playerTeamProvider(widget.team.team_id),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
+
+  Padding _buildInvitePlayerInput() {
+    return Padding(
+      padding: const EdgeInsets.all(Sizes.spaceMd),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: TextField(
+              controller: nameOrEmailController,
+              decoration: const InputDecoration(
+                labelText: "Invite Player",
+                helperText: "Player email or name",
+              ),
+            ),
+          ),
+          const SizedBox(width: Sizes.spaceSm),
+          AppButton(
+            label: 'Invite',
+            onPressed: _handleInvitePlayer,
+            isDisabled: isInviting,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class TeamPlayerCard extends StatelessWidget {
+  const TeamPlayerCard({super.key, required this.player});
+
+  final PlayerModel player;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _showPlayerBottomSheet,
+      onTap: () => _showPlayerBottomSheet(context),
       child: Container(
-        margin: const EdgeInsets.only(
-          right: Sizes.spaceMd,
-          left: Sizes.spaceMd,
-          bottom: Sizes.spaceSm,
+        margin: const EdgeInsets.symmetric(
+          horizontal: Sizes.spaceMd,
+          vertical: Sizes.spaceSm,
         ),
         decoration: BoxDecoration(
           color: context.appColors.gray100,
@@ -307,54 +225,104 @@ class _TeamPlayerCardState extends State<TeamPlayerCard> {
                       fontSize: Sizes.fontSizeMd,
                       fontWeight: FontWeight.w600,
                     ),
-                    overflow: TextOverflow.fade,
-                    maxLines: 1,
                   ),
                   Text(
                     player.position.replaceAll(', ', ' or ').orNoData(),
-                    style: const TextStyle(
-                      fontSize: Sizes.fontSizeSm,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    overflow: TextOverflow.fade,
-                    maxLines: 1,
+                    style: const TextStyle(fontSize: Sizes.fontSizeSm),
                   ),
                   Text(
                     "Gender: ${player.gender.orNoData()}",
-                    style: const TextStyle(
-                      fontSize: Sizes.fontSizeSm,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    overflow: TextOverflow.fade,
-                    maxLines: 1,
+                    style: const TextStyle(fontSize: Sizes.fontSizeSm),
                   ),
                   Text(
                     "Jersey: ${player.jersey_name.orNoData()} • #${formatJerseyNumber(player.jersey_number)}",
-                    style: const TextStyle(
-                      fontSize: Sizes.fontSizeSm,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    overflow: TextOverflow.fade,
-                    maxLines: 1,
+                    style: const TextStyle(fontSize: Sizes.fontSizeSm),
                   ),
-                  // if (player.isCaptain == true) // Show captain badge
-                  //   Padding(
-                  //     padding: const EdgeInsets.only(top: 4.0),
-                  //     child: Text(
-                  //       "🏅 Team Captain",
-                  //       style: TextStyle(
-                  //         color: context.appColors.primary,
-                  //         fontWeight: FontWeight.w600,
-                  //         fontSize: Sizes.fontSizeSm,
-                  //       ),
-                  //     ),
-                  //   ),
                 ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showPlayerBottomSheet(BuildContext context) {
+    final messageController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(Sizes.radiusSm),
+        ),
+      ),
+      isScrollControlled: true,
+      builder: (_) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: Sizes.spaceMd,
+            right: Sizes.spaceMd,
+            bottom: MediaQuery.of(context).viewInsets.bottom + Sizes.spaceMd,
+            top: Sizes.spaceMd,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                player.full_name.orNoData(),
+                style: const TextStyle(
+                  fontSize: Sizes.fontSizeMd,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: Sizes.spaceSm),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: messageController,
+                      decoration: const InputDecoration(
+                        labelText: "Send Message/feedback",
+                        border: OutlineInputBorder(),
+                      ),
+                      minLines: 1,
+                      maxLines: 2,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      showAppSnackbar(
+                        context,
+                        title: "Message Sent",
+                        message:
+                            "Your message has been sent to ${player.full_name}.",
+                        variant: SnackbarVariant.success,
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: Sizes.spaceMd),
+              AppButton(
+                label: "Make Team Captain",
+                size: ButtonSize.sm,
+                onPressed: () {
+                  Navigator.pop(context);
+                  showAppSnackbar(
+                    context,
+                    title: "Updated",
+                    message: "${player.full_name} is now the team captain.",
+                    variant: SnackbarVariant.success,
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

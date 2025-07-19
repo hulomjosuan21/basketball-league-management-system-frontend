@@ -37,7 +37,7 @@
                 <data
                     android:scheme="https"
                     android:host="bogoballers.site"
-                    android:pathPrefix="/" />
+                    android:pathPrefix="/app/" />
             </intent-filter>
         </activity>
 

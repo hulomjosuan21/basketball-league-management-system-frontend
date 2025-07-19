@@ -128,7 +128,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                   label: "Logout",
                   onPressed: () => handleLogout(
                     context: context,
-                    route: '/administrator/login/sreen',
+                    route: '/client/login/screen',
                   ),
                   width: double.infinity,
                 ),

@@ -1,4 +1,4 @@
-import 'package:bogoballers/client/screens/client_join_league_meta_screen.dart';
+import 'package:bogoballers/client/screens/client_join_league_screen.dart';
 import 'package:bogoballers/core/constants/sizes.dart';
 import 'package:bogoballers/core/extensions/extensions.dart';
 import 'package:bogoballers/core/models/league_model.dart';

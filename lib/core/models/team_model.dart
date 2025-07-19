@@ -120,7 +120,6 @@ class TeamModel {
   late int total_losses;
   late bool is_recruiting;
   String? team_captain_id;
-  List<PlayerTeamModel> players;
 
   late MultipartFile team_logo_image;
   late DateTime created_at;
@@ -144,9 +143,6 @@ class TeamModel {
       is_recruiting: json['is_recruiting'] ?? 0,
       created_at: DateTime.parse(json['created_at']),
       updated_at: DateTime.parse(json['updated_at']),
-      players: (json['players'] as List)
-          .map((player) => PlayerTeamModel.fromJson(player))
-          .toList(),
     );
   }
 
@@ -165,7 +161,6 @@ class TeamModel {
     required this.created_at,
     required this.updated_at,
     required this.is_recruiting,
-    this.players = const [],
     required this.total_wins,
     required this.total_losses,
   });
@@ -235,7 +230,6 @@ class TeamModel {
       'championships_won': championships_won,
       'coach_name': coach_name,
       'assistant_coach_name': assistant_coach_name,
-      'players': players.toList(),
       'total_wins': total_wins,
       'is_recruiting': is_recruiting,
       'created_at': created_at,
@@ -279,7 +273,6 @@ class TeamModel {
     required this.coach_name,
     this.assistant_coach_name,
     required this.team_logo_image,
-    this.players = const [],
   });
 
   get imageUrl => null;

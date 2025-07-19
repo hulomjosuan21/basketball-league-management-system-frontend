@@ -1,3 +1,4 @@
+import 'package:bogoballers/client/screens/team_creator_create_team_screen.dart';
 import 'package:bogoballers/client/screens/team_creator_team_screen.dart';
 import 'package:bogoballers/core/constants/image_strings.dart';
 import 'package:bogoballers/core/constants/sizes.dart';
@@ -64,7 +65,7 @@ class _TeamCreatorTeamListScreenState
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          widget.selectable ? "Select team" : "Team",
+          widget.selectable ? "Select team" : "Team" ,
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: Sizes.fontSizeMd,
@@ -74,6 +75,7 @@ class _TeamCreatorTeamListScreenState
         iconTheme: IconThemeData(color: appColors.gray1100),
         backgroundColor: appColors.gray200,
       ),
+      floatingActionButton: FloatingActionButton(onPressed: _handleGotoCreateScreen,backgroundColor: appColors.accent900,child: Icon(Icons.add,color: appColors.gray100,),elevation: 1,),
       body: RefreshIndicator(
         color: appColors.accent900,
         onRefresh: () async => state.refetch(),
@@ -280,5 +282,9 @@ class _TeamCreatorTeamListScreenState
         ),
       ],
     );
+  }
+
+  void _handleGotoCreateScreen() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => TeamCreatorCreateTeamScreen()));
   }
 }

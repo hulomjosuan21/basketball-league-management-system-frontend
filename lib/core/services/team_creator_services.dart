@@ -1,3 +1,4 @@
+import 'package:bogoballers/core/models/player_model_beta.dart';
 import 'package:bogoballers/core/models/team_model.dart';
 import 'package:bogoballers/core/models/user.dart';
 import 'package:bogoballers/core/network/api_response.dart';
@@ -30,4 +31,24 @@ class TeamCreatorServices {
     );
     return apiResponse;
   }
+
+Future<List<PlayerTeamWrapper>?> fetchPlayers(String teamId, {String? status}) async {
+  final api = DioClient().client;
+
+  final response = await api.get(
+    '/team/players/$teamId',
+    queryParameters: {
+      if (status != null) 'status': status
+    },
+  );
+
+  final apiResponse = ApiResponse<List<PlayerTeamWrapper>?>.fromJson(
+    response.data,
+    (data) => (data as List)
+        .map((item) => PlayerTeamWrapper.fromJson(item))
+        .toList(),
+  );
+
+  return apiResponse.payload;
+}
 }

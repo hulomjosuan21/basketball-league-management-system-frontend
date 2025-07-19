@@ -1,3 +1,4 @@
+import 'package:app_links/app_links.dart';
 import 'package:bogoballers/client/player/player_main_screen.dart';
 import 'package:bogoballers/client/screens/client_login_screen.dart';
 import 'package:bogoballers/client/team_creator/team_creator_main_screen.dart';
@@ -32,11 +33,13 @@ class ClientMaterialScreen extends StatefulWidget {
 
 class _ClientMaterialScreenState extends State<ClientMaterialScreen> {
   late Future<bool> _checkLoginFuture;
+  final AppLinks _appLinks = AppLinks();
 
   @override
   void initState() {
     super.initState();
     _checkLoginFuture = checkIfUserIsLoggedInAsync();
+    initDeepLinks();
   }
 
   Future<bool> checkIfUserIsLoggedInAsync() async {
@@ -58,6 +61,44 @@ class _ClientMaterialScreenState extends State<ClientMaterialScreen> {
     } catch (_) {
       throw ValidationException("Something went wrong!");
     }
+  }
+
+  void initDeepLinks() {
+    _appLinks.uriLinkStream.first
+        .then((uri) {
+          if (uri != null) {
+            _handleDeepLink(uri);
+          }
+        })
+        .catchError((e) {
+          debugPrint("Initial link error: $e");
+        });
+
+    _appLinks.uriLinkStream.listen(
+      (uri) {
+        _handleDeepLink(uri);
+      },
+      onError: (e) {
+        debugPrint("Stream link error: $e");
+      },
+    );
+  }
+
+  void _handleDeepLink(Uri? uri) {
+    if (uri == null) return;
+    debugPrint("📱 Received deep link: $uri");
+
+    final path = uri.path;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (path == '/app/payment-success') {
+        navigatorKey.currentState?.pushNamed('/payment-success');
+      } else if (path == '/app/payment-cancelled') {
+        navigatorKey.currentState?.pushNamed('/payment-cancelled');
+      } else {
+        debugPrint("❓ Unknown deep link path: $path");
+      }
+    });
   }
 
   Widget _buildHomeScreen() {
@@ -100,9 +141,6 @@ class _ClientMaterialScreenState extends State<ClientMaterialScreen> {
   Widget build(BuildContext context) {
     debugPrint("User ID: ${widget.user_id ?? "None"}");
     debugPrint("Account Type: ${widget.accountType?.value ?? "None"}");
-    // Josuan
-
-    // return MaterialApp(home: NotificationScreen());
 
     return MaterialApp(
       title: 'BogoBallers',
