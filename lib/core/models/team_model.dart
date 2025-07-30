@@ -120,6 +120,7 @@ class TeamModel {
   late int total_losses;
   late bool is_recruiting;
   String? team_captain_id;
+  String? team_category;
 
   late MultipartFile team_logo_image;
   late DateTime created_at;
@@ -143,6 +144,7 @@ class TeamModel {
       is_recruiting: json['is_recruiting'] ?? 0,
       created_at: DateTime.parse(json['created_at']),
       updated_at: DateTime.parse(json['updated_at']),
+      team_category: json['team_category']
     );
   }
 
@@ -163,6 +165,7 @@ class TeamModel {
     required this.is_recruiting,
     required this.total_wins,
     required this.total_losses,
+    required this.team_category
   });
 
   TeamModel copyWith({
@@ -193,6 +196,7 @@ class TeamModel {
       team_captain_id: team_captain_id ?? this.team_captain_id,
       created_at: created_at,
       updated_at: updated_at,
+      team_category: team_category
     );
   }
 

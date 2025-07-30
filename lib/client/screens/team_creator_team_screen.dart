@@ -199,6 +199,7 @@ class _TeamCreatorTeamScreenState extends State<TeamCreatorTeamScreen> {
               DropdownMenu<String>(
                 label: Text("Team Category"),
                 onSelected: _onSelectCategory,
+                initialSelection: team.team_category,
                 dropdownMenuEntries: categories
                     .map((o) => DropdownMenuEntry(value: o, label: o))
                     .toList(),
@@ -216,7 +217,7 @@ class _TeamCreatorTeamScreenState extends State<TeamCreatorTeamScreen> {
                   ),
                   Switch(
                     value: team.is_recruiting,
-                    onChanged: (value) {},
+                    onChanged: _handleToggleRecruiting,
                     activeColor: appColors.accent900,
                   ),
                 ],
@@ -225,13 +226,15 @@ class _TeamCreatorTeamScreenState extends State<TeamCreatorTeamScreen> {
           );
   }
 
-  Future<void> _onSelectCategory(String? value) async {
+  Future<void> _handleToggleRecruiting(bool value) async {
     setState(() => loading = Loading.settings);
+
     try {
       final originalTeam = team;
       final service = TeamService();
-      team = team.copyWith(team_category: value);
+      team = team.copyWith(is_recruiting: value);
       final updateJson = team.toJsonForUpdate(originalTeam);
+
       final response = await service.updateTeam(
         team_id: team.team_id,
         data: updateJson,
@@ -241,10 +244,56 @@ class _TeamCreatorTeamScreenState extends State<TeamCreatorTeamScreen> {
         showAppSnackbar(
           context,
           message: response.message,
-          title: "Success",
+          title: "Updated",
           variant: SnackbarVariant.success,
         );
       }
+    } catch (e) {
+      if (mounted) {
+        handleErrorCallBack(e, (message) {
+          showAppSnackbar(
+            context,
+            message: message,
+            title: "Error",
+            variant: SnackbarVariant.error,
+          );
+        });
+      }
+
+      team = team.copyWith(is_recruiting: !value);
+    } finally {
+      if (mounted) {
+        setState(() => loading = Loading.none);
+      }
+    }
+  }
+
+  Future<void> _onSelectCategory(String? value) async {
+    setState(() => loading = Loading.settings);
+    try {
+      showAppSnackbar(
+          context,
+          message: value ?? '',
+          title: "Success",
+          variant: SnackbarVariant.success,
+        );
+      // final originalTeam = team;
+      // final service = TeamService();
+      // team = team.copyWith(team_category: value);
+      // final updateJson = team.toJsonForUpdate(originalTeam);
+      // final response = await service.updateTeam(
+      //   team_id: team.team_id,
+      //   data: updateJson,
+      // );
+
+      // if (mounted) {
+      //   showAppSnackbar(
+      //     context,
+      //     message: response.message,
+      //     title: "Success",
+      //     variant: SnackbarVariant.success,
+      //   );
+      // }
     } catch (e) {
       if (context.mounted) {
         handleErrorCallBack(e, (message) {

@@ -12,7 +12,7 @@ class AccessToken {
 
   bool get isExpired => JwtDecoder.isExpired(access_token);
 
-  String get user_id => JwtDecoder.decode(access_token)['sub'];
+  String get user_id => JwtDecoder.decode(access_token)['sub']; 
   String get getAccountType => JwtDecoder.decode(access_token)['account_type'];
 
   factory AccessToken.fromJson(Map<String, dynamic> json) {

@@ -4,6 +4,7 @@ import 'package:bogoballers/core/widgets/alerts.dart';
 import 'package:bogoballers/core/widgets/flexible_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:bogoballers/client/widgets/league_carousel.dart';
 
 class PlayerHomeScreen extends StatefulWidget {
   const PlayerHomeScreen({super.key});
@@ -49,6 +50,10 @@ class _PlayerHomeScreenState extends State<PlayerHomeScreen> {
                   setState(() => _showBanner = false);
                 }),
               ),
+            ),
+          
+            SliverToBoxAdapter(
+              child: LeagueCarousel(isPlayer: true,),
             ),
         ],
       ),

@@ -12,7 +12,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 
 class LeagueCarousel extends ConsumerWidget {
-  const LeagueCarousel({super.key});
+  const LeagueCarousel({super.key, required this.isPlayer});
+
+  final bool isPlayer;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -47,7 +49,7 @@ class LeagueCarousel extends ConsumerWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => JoinLeagueMetaScreen(league: league),
+                  builder: (_) => JoinLeagueMetaScreen(league: league, isPlayer: isPlayer,),
                 ),
               );
             },
@@ -99,7 +101,7 @@ class LeagueCarousel extends ConsumerWidget {
                             context,
                             MaterialPageRoute(
                               builder: (_) =>
-                                  JoinLeagueMetaScreen(league: league),
+                                  JoinLeagueMetaScreen(league: league, isPlayer: isPlayer,),
                             ),
                           ),
                           size: ButtonSize.xs,

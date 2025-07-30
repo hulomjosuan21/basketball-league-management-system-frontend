@@ -69,7 +69,7 @@ class _TeamCreatorHomeScreenState extends ConsumerState<TeamCreatorHomeScreen> {
               ),
             ),
             SliverToBoxAdapter(
-              child: LeagueCarousel(),
+              child: LeagueCarousel(isPlayer: false,),
             ),
           ],
         ),
